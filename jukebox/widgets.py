@@ -6,11 +6,14 @@ except ImportError:
     import Tkinter as tk
     import tkFileDialog as filedialog
 
+import math as m
+
 def char_check(c):
     return c != "\b" and c != "" and c.isalnum or c == " "
+
 ###~~~###~~~###~~~###~~~###~~~###
 
-class PrimerFileExplorer:
+class PrimerFileExplorer: 
     def __init__(self, parent):
         self.button = tk.Button(parent, text="Browse", command=self.browse_files)
         self.button.grid(row=9, column=3)
@@ -25,9 +28,26 @@ class PrimerFileExplorer:
 
 ###~~~###~~~###~~~###~~~###~~~###
 
+class EstimatedTimeDisplay:
+    def __init__(self, parent):
+        self.eta = tk.StringVar()
+        self.display_label = tk.Label(parent, text="Estimated time for completion:")
+        self.display = tk.Label(parent, textvariable=self.eta)
+        self.display_label.grid(row=9, column=5)
+        self.display.grid(row=10, column=5)
+
+    def calc_eta(self, sample_length):
+        sec_  = sample_length * 540
+        min_  = m.floor(sec_ / 60)
+        hour_ = m.floor(min_ / 60)
+        formatted = f"{hour_}h {min_ - (hour_ * 60)}m"
+        self.eta.set(formatted)
+
+###~~~###~~~###~~~###~~~###~~~###
+
 class OutputFilenameField:
     def __init__(self, parent):
-        self.input_label = tk.Label(parent, text="Output file name:")
+        self.input_label = tk.Label(parent, text="Output name:")
         self.input_ = tk.Entry(parent)
         self.input_label.grid(row=9, column=4)
         self.input_.grid(row=10, column=4)
