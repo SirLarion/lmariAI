@@ -587,7 +587,7 @@ jam band;586
 chicago blues;587
 street punk;588
 funk metal;589
-rap  metal;590
+rap metal;590
 christian hymns;591
 classic female blues;592
 kizomba;593

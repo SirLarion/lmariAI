@@ -13,11 +13,26 @@ def char_check(c):
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class PrimerFileExplorer: 
-    def __init__(self, parent):
-        self.button = tk.Button(parent, text="Browse", command=self.browse_files)
-        self.button.grid(row=9, column=3)
+class UIWidget:
+    def __init__(self, parent, h=1, w=1, gy=0, gx=0, py=5, px=10, label=""):
+        self.frame = tk.LabelFrame(parent, text=label, relief=tk.FLAT)
+        self.frame.grid(
+                row=gy, column=gx, 
+                rowspan=h, columnspan=w,
+                pady=py, padx=px
+        )
+
+###~~~###~~~###~~~###~~~###~~~###
+
+class PrimerFileExplorer(UIWidget): 
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
+        self.button = tk.Button(self.frame, text="Browse", command=self.browse_files)
         self.opened_file = ""
+        self.file_parsed = tk.StringVar()
+        self.file_label = tk.Label(self.frame, textvariable=self.file_parsed)
+        self.button.grid()
+        self.file_label.grid()
 
     def browse_files(self):
         self.opened_file = filedialog.askopenfilename(
@@ -25,19 +40,20 @@ class PrimerFileExplorer:
             title = "Select a sound file to prime with",
             filetypes = (("WAV", "*.wav*"), ("MP3", ".mp3"))
         )
+        self.file_parsed.set(self.opened_file.split("/")[-1])
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class EstimatedTimeDisplay:
-    def __init__(self, parent):
+class EstimatedTimeDisplay(UIWidget):
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
         self.eta = tk.StringVar()
-        self.display_label = tk.Label(parent, text="Estimated time for completion:")
-        self.display = tk.Label(parent, textvariable=self.eta)
-        self.display_label.grid(row=9, column=5)
-        self.display.grid(row=10, column=5)
+        self.IT_SEC = 13.5
+        self.display = tk.Label(self.frame, textvariable=self.eta)
+        self.display.grid()
 
     def calc_eta(self, sample_length):
-        sec_  = sample_length * 540
+        sec_  = (sample_length * 5500) / self.IT_SEC
         min_  = m.floor(sec_ / 60)
         hour_ = m.floor(min_ / 60)
         formatted = f"{hour_}h {min_ - (hour_ * 60)}m"
@@ -45,25 +61,28 @@ class EstimatedTimeDisplay:
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class OutputFilenameField:
-    def __init__(self, parent):
-        self.input_label = tk.Label(parent, text="Output name:")
-        self.input_ = tk.Entry(parent)
-        self.input_label.grid(row=9, column=4)
-        self.input_.grid(row=10, column=4)
+class OutputFilenameField(UIWidget):
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
+        self.input_ = tk.Entry(self.frame)
+        self.input_.grid()
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class SampleLengthSlider:
-    def __init__(self, parent):
+class SampleLengthSlider(UIWidget):
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
         self.slider_value = tk.StringVar()
-        self.input_ = tk.Entry(parent, textvariable=self.slider_value, width=3)
+        self.input_ = tk.Entry(self.frame, textvariable=self.slider_value, width=3)
         self.slider = tk.Scale(
-            parent, from_=1, to=120, variable=self.slider_value, 
-            showvalue=0, orient=tk.HORIZONTAL, relief=tk.FLAT)
+            self.frame, from_=1, to=120, variable=self.slider_value, 
+            showvalue=0, orient=tk.HORIZONTAL, relief=tk.FLAT
+        )
+        self.s_label = tk.Label(self.frame, text="sec")
         self.input_.bind("<Key>", self.check_input)
-        self.slider.grid(row=9, column=0, columnspan=2, sticky="E")
-        self.input_.grid(row=9, column=2, sticky="W")
+        self.slider.grid(row=0)
+        self.input_.grid(row=0, column=1)
+        self.s_label.grid(row=0, column=2, sticky="W")
 
     def check_input(self, e):
         if e.char.isnumeric or e.char == "\b":
@@ -73,46 +92,53 @@ class SampleLengthSlider:
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class LyricWriter:
-    def __init__(self, parent):
-        self.input_label = tk.Label(parent, text="Enter lyrics")
-        self.state = tk.StringVar()
-        self.input_ = ScrolledText(parent, width=20, height=12)
-
-        self.input_label.grid(row=2, column=6)
-        self.input_.grid(row=3, column=6, rowspan=5, columnspan=8) 
+class LyricWriter(UIWidget):
+    def __init__(self, parent, gy, gx, w, py, label):
+        super().__init__(parent, gy=gy, gx=gx, w=w, label=label)
+        self.input_ = ScrolledText(self.frame, wrap=tk.WORD, width=20, height=12)
+        self.input_.grid() 
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-class ArtistSelector:
-    def __init__(self, parent):
+class ArtistSelector(UIWidget):
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
         self.artists = []
 
-        self.lb = tk.Listbox(parent, relief=tk.FLAT)
+        self.lb = tk.Listbox(self.frame, relief=tk.FLAT)
         self.filter_ = tk.StringVar() 
-        self.filter_label = tk.Label(parent, text="Filter artist")
-        self.filter_input = tk.Entry(parent, textvariable=self.filter_)
+        self.selection = "unknown"
+        self.filter_input = tk.Entry(self.frame, textvariable=self.filter_)
+        self.lb.bind("<ButtonRelease-1>", self.save_selection)
+        self.lb.bind("<FocusOut>", self.display_selection)
         self.filter_input.bind("<Key>", self.filter_change)
 
         self.lb.yview()
         self.load_artists()
 
-        self.filter_label.grid(row=2, column=1)
-        self.filter_input.grid(row=3, column=1)
-        self.lb.grid(row=4, column=1, rowspan=5, columnspan=2)   
-
+        self.filter_input.grid()
+        self.lb.grid() 
 
     def load_artists(self):
         f = open("./data/ids/v3_artist_ids.txt")
         artists_raw = f.readlines()
         artists_raw.sort()
-        i = 0
+        i = 0 
         for a in artists_raw:
-            i += 1
             artist = a.split(";")[0].title()
-            self.artists.append(artist)
-            self.lb.insert(i, artist)
+            if len(artist) > 1:
+                i += 1
+                self.artists.append(artist)
+                self.lb.insert(i, artist)
         f.close()
+
+    def save_selection(self, e):
+        i = self.lb.curselection()
+        if i:
+            self.selection = self.lb.get(i)
+
+    def display_selection(self, e):
+        self.filter_.set(self.selection)
 
     def filter_change(self, e):
         current = (self.filter_input.get() + e.char).lower()
@@ -127,26 +153,24 @@ class ArtistSelector:
 
 ###~~~###~~~###~~~###~~~###~~~###
 
-
-
-###~~~###~~~###~~~###~~~###~~~###
-
-class GenreSelector:
-    def __init__(self, parent):
+class GenreSelector(UIWidget):
+    def __init__(self, parent, gy, gx, label):
+        super().__init__(parent, gy=gy, gx=gx, label=label)
         self.genres = []
 
-        self.lb = tk.Listbox(parent, relief=tk.FLAT)
+        self.lb = tk.Listbox(self.frame, relief=tk.FLAT)
+        self.selection = "unknown"
         self.filter_ = tk.StringVar()
-        self.filter_label = tk.Label(parent, text="Filter genre")
-        self.filter_input = tk.Entry(parent, textvariable=self.filter_)
+        self.filter_input = tk.Entry(self.frame, textvariable=self.filter_)
+        self.lb.bind("<ButtonRelease-1>", self.save_selection)
+        self.lb.bind("<FocusOut>", self.display_selection)
         self.filter_input.bind("<Key>", self.filter_change)
 
         self.lb.yview()
         self.load_genres()
 
-        self.filter_label.grid(row=2, column=4)
-        self.filter_input.grid(row=3, column=4)
-        self.lb.grid(row=4, column=4, rowspan=5, columnspan=2)
+        self.filter_input.grid()
+        self.lb.grid()
 
     def load_genres(self):
         f = open("./data/ids/v3_genre_ids.txt")
@@ -154,11 +178,17 @@ class GenreSelector:
         genres_raw.sort()
         i = 0 
         for g in genres_raw:
-            i += 1
             genre = g.split(";")[0].title()
-            self.genres.append(genre)
-            self.lb.insert(i, genre)
+            if len(genre) > 1:
+                i += 1
+                self.genres.append(genre)
+                self.lb.insert(i, genre)
         f.close()
+
+    def _get(self):
+        i = self.lb.curselection()
+        if i:
+            return self.lb.get(i)
 
     def filter_change(self, e):
         current = (self.filter_input.get() + e.char).lower()
@@ -171,6 +201,14 @@ class GenreSelector:
                 i += 1
             self.lb.yview_scroll(i-self.lb.nearest(0), tk.UNITS)
 
+    def save_selection(self, e):
+        i = self.lb.curselection()
+        print(i)
+        if i:
+            self.selection = self.lb.get(i)
+
+    def display_selection(self, e):
+        self.filter_.set(self.selection)
 
 ###~~~###~~~###~~~###~~~###~~~###
 
