@@ -53,7 +53,7 @@ class EstimatedTimeDisplay(UIWidget):
         self.display.grid()
 
     def calc_eta(self, sample_length):
-        sec_  = (sample_length * 5500) / self.IT_SEC
+        sec_  = (sample_length * 5512) / self.IT_SEC
         min_  = m.floor(sec_ / 60)
         hour_ = m.floor(min_ / 60)
         formatted = f"{hour_}h {min_ - (hour_ * 60)}m"

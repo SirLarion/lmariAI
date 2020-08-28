@@ -6,19 +6,29 @@ except ImportError:
     import ttk
 
 from widgets import *
+#import sample
 
 
 def main():
 
-    # TODO: Call the run method in sample.py
-    def run():
-        artist = a_select.selection
-        genre = g_select.selection
-        lyrics = l_writer.input_.get("1.0", tk.END)
-        f_in = f_browse.opened_file
-        f_out = f_output.input_.get()
-        s_length = int(sl_slider.slider_value.get())
-        print(f"artist: {artist}\ngenre: {genre}\nlyrics: {lyrics}\ninput file: {f_in}\noutput file: {f_out}\nsample length: {s_length}")
+    def proc_start():
+        a = a_select.selection
+        g = g_select.selection
+        l = l_writer.input_.get("1.0", tk.END)
+        in_f = f_browse.opened_file
+        s_n = f_output.input_.get()
+        s_l = int(sl_slider.slider_value.get())
+        print(f"artist: {a}\ngenre: {g}\nlyrics: {l}\ninput file: {in_f}\noutput file: {s_n}\nsample length: {s_l}")
+
+#        sample.run(
+#            artist=a, 
+#            genre=g, 
+#            lyrics=l, 
+#            input_file=in_f, 
+#            sample_name=s_n, 
+#            sample_length=s_l
+#        )
+
 
     def handle_eta_change(event):
         val_ = sl_slider.slider.get()
@@ -32,7 +42,7 @@ def main():
     top = tk.Frame(app)
     top.pack()
 
-    win = tk.LabelFrame(top,  text="lmariAI", bd=1, relief=tk.FLAT)
+    win = tk.LabelFrame(top,  text="lmariAI", bd=1)
     win.grid(padx=50, pady=20)
 
     # Widget initialization
@@ -57,11 +67,12 @@ def main():
     eta_display = EstimatedTimeDisplay(
         win, 2, 1, "Estimated time:"
     )
+    eta_display.calc_eta(1)
 
     sl_slider.slider.bind("<B1-Motion>", handle_eta_change)
 
-    run_button = tk.Button(win, text="Run", command=run)
-    run_button.grid(row=10, column=1)
+    run_button = tk.Button(win, text="Run", command=proc_start)
+    run_button.grid(row=2, column=2)
 
     # Start Tk App
     app.mainloop()
