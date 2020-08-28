@@ -2,15 +2,16 @@ import os
 import torch as t
 import jukebox.utils.dist_adapter as dist
 
-from jukebox.hparams import Hyperparams
+from jukebox.hparams import Hyperparams, setup_hparams
 from jukebox.data.labels import EmptyLabeller
 from jukebox.utils.torch_utils import empty_cache
 from jukebox.utils.audio_utils import save_wav, load_audio
-from jukebox.make_models import make_model
+from jukebox.make_models import make_vqvae, make_prior, MODELS, make_model
 from jukebox.align import get_alignment
 from jukebox.save_html import save_html
 from jukebox.utils.sample_utils import split_batch, get_starts
 from jukebox.utils.dist_utils import print_once
+from jukebox.utils.torch_utils import empty_cache
 
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):

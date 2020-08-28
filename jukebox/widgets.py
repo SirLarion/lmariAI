@@ -75,11 +75,10 @@ class SampleLengthSlider(UIWidget):
         self.slider_value = tk.StringVar()
         self.input_ = tk.Entry(self.frame, textvariable=self.slider_value, width=3)
         self.slider = tk.Scale(
-            self.frame, from_=1, to=120, variable=self.slider_value, 
+            self.frame, from_=20, to=200, variable=self.slider_value, 
             showvalue=0, orient=tk.HORIZONTAL, relief=tk.FLAT
         )
         self.s_label = tk.Label(self.frame, text="sec")
-        self.input_.bind("<Key>", self.check_input)
         self.slider.grid(row=0)
         self.input_.grid(row=0, column=1)
         self.s_label.grid(row=0, column=2, sticky="W")
